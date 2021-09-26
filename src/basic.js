@@ -1,7 +1,7 @@
 
 import React, { setState, useState, useRef } from "react";
 
-import { MapContainer, TileLayer,  Marker, Popup, FeatureGroup} from "react-leaflet";
+import { MapConsumer, MapContainer, TileLayer,  Marker, Popup, FeatureGroup, useMap} from "react-leaflet";
 import L from "leaflet";
 import { EditControl} from "react-leaflet-draw";
 
@@ -13,29 +13,55 @@ import GeojsonLayer from './GeojsonLayer';
 
 L.Icon.Default.imagePath = "https://unpkg.com/leaflet@1.5.0/dist/images/";
 
+function BasicMap(props) {
 
-const BasicMap = () => {
+	const {onClick, mapLayers, setMapLayers, geojsonvisible, setGeo, setValue, setValueTo,fieldFrom, fieldTo, trigger, setKK} = props;
 
 	const [center, setCenter] = useState({lat:55.757332, lng: 37.619374});
 	const ZOOM_LEVEL = 9;
- 
-  const [geojsonvisible,setGeo] = useState(false);
 
-  function onGeojsonToggle(bool) {
-    setGeo(true)
-  }
-
+//	const [mapLayers, setMapLayers] = useState([]);
   const _onCreate = e => {
   	console.log(e);
-  }
-const _onEdited= e => {
-  	console.log(e);
-  }
+
+  	const {layerType, layer} = e;
+
+  	if (layerType === 'marker')
+  	{
+  		const {_leaflet_id } = layer;
+
+  		setMapLayers((layers) => [
+  			...layers,
+  			{ id: _leaflet_id, latings: layer.getLatLng()},
+  			]);
+  	}
+
+  };
+
+const _onEdited = (e) => {
+    console.log(e);
+    const {
+      layers: { _layers },
+    } = e;
+
+    Object.values(_layers).map(({ _leaflet_id, editing }) => {
+      setMapLayers((layers) =>
+        layers.map((l) =>
+          l.id === _leaflet_id
+            ? { ...l, latlngs: { ...editing.latlngs[0] } }
+            : l
+        )
+      );
+    });
+  };
 const _onDeleted = e => {
   	console.log(e);
-  }
+  	setGeo(false);
+  	setMapLayers([]);
+  };
 
 	return (
+		<>
 		<div className="row">
 		<div className="col text-center">
 			<div className="col">
@@ -46,7 +72,7 @@ const _onDeleted = e => {
 
 				<FeatureGroup>
 				<EditControl
-				position="topright">
+				position="topright"
 				onCreated={_onCreate}
 				onEdited={_onEdited}
 				onDeleted={_onDeleted}
@@ -55,28 +81,22 @@ const _onDeleted = e => {
 					polyline: false,
 					circle: false,
 					circlemarker: false,
-					marker: false,
+					polygon: false,
 				}}
-				></EditControl>
+				/>
 				</FeatureGroup>
 
 				<TileLayer url={osm.maptiler.url} attribution={osm.maptiler.attribution}/>
-					<div className="geojson-toggle">
-			            <label htmlFor="layertoggle"> Toggle Geojson </label>
-			           
-			            <input type="checkbox"
-			            name="layertoggle" id="layertoggle"
-			            value={geojsonvisible} onChange={onGeojsonToggle} />       
-			            </div>
+          {
+      			geojsonvisible && <GeojsonLayer setCenter={setCenter} mapLayers={mapLayers} setMapLayers={setMapLayers} setValue={setValue} setValueTo={setValueTo} fieldFrom={fieldFrom} fieldTo={fieldTo} trigger={trigger} setKK={setKK} setGeo={setGeo}/> 
+          }
 
-			            {
-			        			geojsonvisible && <GeojsonLayer url="geojson.json"/>
-			            }
 				</MapContainer>
+
 			</div>
 		</div>
 		</div> 
-
+		</>
 	);
 };
 

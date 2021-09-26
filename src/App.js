@@ -13,7 +13,7 @@ import green from '@material-ui/core/colors/green';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
-
+import ModalPopap from './PopupCallback';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -26,6 +26,12 @@ const useStyles = makeStyles((theme) => ({
 
     width: '70vw',
  },
+   ccal:
+  {
+    height: '4vh',
+
+    width: '10vw',
+ },
   textField:
   {
     height: '27vh',
@@ -36,11 +42,25 @@ const useStyles = makeStyles((theme) => ({
     color: grey[5],
     borderRadius: 15,
     border: '2px solid #00B337',
-    width: '40vw',
+    width: '30vw',
     height: '4vh',
     '&:hover': {
       backgroundColor: green[600],
       borderColor: green[600],
+      boxShadow: 'none',
+    }
+  },
+
+   buttCallback:
+  {
+    color: grey[5],
+    borderRadius: 15,
+    border: '2px solid #ff9800',
+    width: '20vw',
+    height: '4vh',
+    '&:hover': {
+      backgroundColor: '#ff9800',
+      borderColor: '#ff9800',
       boxShadow: 'none',
     }
   }
@@ -50,13 +70,50 @@ const useStyles = makeStyles((theme) => ({
 function App() {
     const classes = useStyles();
 
+    const [kkal, setKkal] = useState('0')
+    const [trigger, setTrigger] = useState(0);
+    const [mapLayers, setMapLayers] = useState([]);
     const [fieldFrom, setFieldFrom] = useState('');
     const [fieldTo, setFieldTo] = useState('');
+    const [geojsonvisible,setGeo] = useState(false);
+      const [open, setOpen] = React.useState(false);
 
-    const handleClick = () =>
-    {
-      console.log(fieldFrom);
-      console.log(fieldTo);
+  function setKK(val){
+    console.error(val.toFixed(1))
+    setKkal(parseFloat(val).toFixed(2).toString())
+  }
+
+  function onGeojsonToggle(bool) {
+    setGeo(bool)
+    setTrigger(trigger+1)
+  }
+
+  function CallbackButton() {
+    if (geojsonvisible)
+      handleOpen();
+  }
+
+  const handleValue = (event) =>
+  {
+    setFieldFrom(event.target.value);
+  }
+  const handleValueTo = (event) =>
+  {
+    setFieldTo(event.target.value);
+  }
+  function setValue(value) {
+    setFieldFrom(value);
+  }
+  function setValueTo(value) {
+    setFieldTo(value);
+  }
+
+    const handleOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
     };
 
     return (
@@ -69,9 +126,9 @@ function App() {
 
             <Card className={classes.root}>
                <Typography align="center" variant="h6" component="h4" className={classes.text}>
-                      Мария Фул-стэк
+                      ЭкоМаршруты
                     </Typography>
-              <BasicMap/>
+              <BasicMap mapLayers={mapLayers} trigger={trigger} setMapLayers={setMapLayers} geojsonvisible={geojsonvisible} setGeo={onGeojsonToggle} setValue={setValue} setValueTo={setValueTo} fieldFrom={fieldFrom} fieldTo={fieldTo} setKK={setKK} />
 
               <Grid className={classes.textField} container   direction="column" justifyContent="space-evenly" alignItems="center">
                 <CardActions>
@@ -81,7 +138,8 @@ function App() {
                       label="Откуда"
                       defaultValue=""
                       variant="standard"
-                      onChange={(event) => {setFieldFrom(event.target.value)}}
+                      onChange={handleValue}
+                      value={fieldFrom}
                     />
                 </CardActions>
   
@@ -92,16 +150,39 @@ function App() {
                       label="Куда"
                       defaultValue=""
                       variant="standard"
-                      onChange={(event) => {setFieldTo(event.target.value)}}
+                      onChange={handleValueTo}
+                      value={fieldTo}
 
                     />
                 </CardActions>
-  
+                <Grid container
+          direction="row"
+          justifyContent="space-evenly" alignItems="center">
                 <CardActions>
-                  <Button variant="outlined" size="medium" className={classes.butt} onClick={handleClick} >
+                  <Button variant="outlined" size="medium" className={classes.butt} onClick={()=>onGeojsonToggle(true)} >
                     ВПЕРЕД
                   </Button>
                 </CardActions>
+                <CardActions>
+                     <TextField className={classes.ccal}
+                      required
+                      id="standard-required"
+                      label="Ккал"
+                      defaultValue=""
+                      variant="standard"
+                      value={kkal}
+
+                    />
+                </CardActions>
+                <CardActions>
+                  <Button variant="outlined" size="medium" className={classes.buttCallback} onClick={CallbackButton} >
+                    Оценить
+                  </Button>
+
+                  <ModalPopap open={open} handleClose={handleClose}/>
+
+                </CardActions>
+                </Grid>
                 </Grid>
 
         </Card>
